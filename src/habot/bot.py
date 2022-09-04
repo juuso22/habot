@@ -141,27 +141,28 @@ class WatcherThread(threading.Thread):
             self.lookup_thread.shutdown_signal.set()
 
 def run_primary_backup_model(updater, instances):
-    logging.info("Launching a lone primary lookup thread.")
-    primary_lookup_thread = PrimaryLookupThread(instances)
-    primary_lookup_thread.start()
-    while primary_lookup_thread.is_alive():
-        logging.info("Primary lookup is ongoing. Sleeping 10s before checking again.")
-        time.sleep(10)
-    logging.info("This node has been dedicated as primary. Starting the relevant threads.")
-    primary_broadcast_thread = PrimaryBroadcasterThread(time.time())
-    primary_broadcast_thread.start()
-    logging.info("Broadcasting primary status.")
-    primary_primary_lookup_thread = PrimaryLookupThread(instances)
-    primary_primary_lookup_thread.start()
-    logging.info("Looking up for other primaries.")
-    watcher_thread=WatcherThread(updater, primary_primary_lookup_thread, primary_broadcast_thread)
-    watcher_thread.start()
-    logging.info("Watching the lookup and broadcasting threads.")
-    run_bot_only(updater)
-    if primary_broadcast_thread.is_alive():
-        primary_broadcast_thread.server.shutdown()
-    if primary_primary_lookup_thread.is_alive():
-        primary_primary_lookup_thread.shutdown_signal.set()
+    while True:
+        logging.info("Launching a lone primary lookup thread.")
+        primary_lookup_thread = PrimaryLookupThread(instances)
+        primary_lookup_thread.start()
+        while primary_lookup_thread.is_alive():
+            logging.info("Primary lookup is ongoing. Sleeping 10s before checking again.")
+            time.sleep(10)
+        logging.info("This node has been dedicated as primary. Starting the relevant threads.")
+        primary_broadcast_thread = PrimaryBroadcasterThread(time.time())
+        primary_broadcast_thread.start()
+        logging.info("Broadcasting primary status.")
+        primary_primary_lookup_thread = PrimaryLookupThread(instances)
+        primary_primary_lookup_thread.start()
+        logging.info("Looking up for other primaries.")
+        watcher_thread=WatcherThread(updater, primary_primary_lookup_thread, primary_broadcast_thread)
+        watcher_thread.start()
+        logging.info("Watching the lookup and broadcasting threads.")
+        run_bot_only(updater)
+        if primary_broadcast_thread.is_alive():
+            primary_broadcast_thread.server.shutdown()
+        if primary_primary_lookup_thread.is_alive():
+            primary_primary_lookup_thread.shutdown_signal.set()
 
 def run_bot_only(updater):
     updater.start_polling()
