@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "habot"
-version = "0.0.3"
+version = "0.0.2"
 authors = [
   { name="Juuso22"},
 ]
-description = "A small example package"
+description = "A Telgram bot wrapper to run HA bots"
 readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.10"
